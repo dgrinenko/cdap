@@ -18,16 +18,24 @@ import Select from 'components/AbstractWidget/FormInputs/Select';
 import { IWidgetProps, IStageSchema } from 'components/AbstractWidget';
 import { objectQuery } from 'services/helpers';
 import { WIDGET_PROPTYPES } from 'components/AbstractWidget/constants';
+import MultiSelect from '../FormInputs/MultiSelect';
 
 interface IField {
   name: string;
   type: string;
 }
 
-interface IInputFieldProps extends IWidgetProps<null> {}
+const delimiter: string = ',';
+
+interface IInputFieldWidgetProps {
+  multiselect?: boolean;
+  supportedTypes?: string[];
+}
+
+interface IInputFieldProps extends IWidgetProps<IInputFieldWidgetProps> {}
 
 // We are assuming all incoming stages have the same schema
-function getFields(schemas: IStageSchema[]) {
+function getFields(schemas: IStageSchema[], allowedTypes: string[]) {
   let fields = [];
   if (!schemas || schemas.length === 0) {
     return fields;
@@ -38,7 +46,9 @@ function getFields(schemas: IStageSchema[]) {
     const unparsedFields = JSON.parse(stage.schema).fields;
 
     if (unparsedFields.length > 0) {
-      fields = unparsedFields.map((field: IField) => field.name);
+      fields = unparsedFields
+        .filter((field: IField) => allowedTypes.length == 0 || allowedTypes.includes(field.type))
+        .map((field: IField) => field.name);
     }
   } catch {
     // tslint:disable-next-line: no-console
@@ -52,14 +62,53 @@ const InputFieldDropdown: React.FC<IInputFieldProps> = ({
   onChange,
   disabled,
   extraConfig,
+  widgetProps,
 }) => {
   const inputSchema = objectQuery(extraConfig, 'inputSchema');
-  const fieldValues = getFields(inputSchema);
-  const widgetProps = {
-    options: fieldValues,
-  };
 
-  return <Select value={value} onChange={onChange} widgetProps={widgetProps} disabled={disabled} />;
+  const isMultiSelect: boolean = widgetProps.multiselect || false;
+  const allowedTypes: string[] = widgetProps.supportedTypes || [];
+
+  const fieldValues = getFields(inputSchema, allowedTypes);
+
+  const newValue = value
+    .toString()
+    .split(delimiter)
+    .filter((value) => fieldValues.includes(value))
+    .toString();
+
+  if (newValue !== value) {
+    onChange(newValue);
+    value = newValue;
+  }
+
+  if (isMultiSelect) {
+    const multiSelectWidgetProps = {
+      delimiter,
+      options: fieldValues.map((field) => ({ id: field, label: field })),
+    };
+
+    return (
+      <MultiSelect
+        value={value}
+        onChange={onChange}
+        widgetProps={multiSelectWidgetProps}
+        disabled={disabled}
+      />
+    );
+  } else {
+    const slectWidgetProps = {
+      options: fieldValues,
+    };
+    return (
+      <Select
+        value={value}
+        onChange={onChange}
+        widgetProps={slectWidgetProps}
+        disabled={disabled}
+      />
+    );
+  }
 };
 
 export default InputFieldDropdown;

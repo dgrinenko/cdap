@@ -13,8 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
 */
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputBase from '@material-ui/core/InputBase';
@@ -53,6 +52,7 @@ const CustomSelect: React.FC<ISelectProps> = ({
 }: ISelectProps) => {
   const onChangeHandler = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const v = event.target.value;
+    setSelection(v);
     if (typeof onChange === 'function') {
       onChange(v);
     }
@@ -63,10 +63,20 @@ const CustomSelect: React.FC<ISelectProps> = ({
     return ['string', 'number'].indexOf(typeof opt) !== -1 ? { value: opt, label: opt } : opt;
   });
 
+  const [selection, setSelection] = useState<string>(value ? value.toString() : '');
+
+  useEffect(
+    () => {
+      console.log(value);
+      setSelection(value ? value.toString() : '');
+    },
+    [value]
+  );
+
   return (
     <Select
       fullWidth
-      value={value}
+      value={selection}
       onChange={onChangeHandler}
       input={<CustomizedInput />}
       readOnly={disabled}

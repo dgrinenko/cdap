@@ -13,24 +13,42 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-
+import FormHelperText from '@material-ui/core/FormHelperText';
+import InputLabel from '@material-ui/core/InputLabel';
 import * as React from 'react';
-import Input from '@material-ui/core/Input';
 import withStyles, { StyleRules } from '@material-ui/core/styles/withStyles';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import AbstractRow, {
   IAbstractRowProps,
-  AbstractRowStyles,
 } from 'components/AbstractWidget/AbstractMultiRowWidget/AbstractRow';
-import MultiSelect from '../FormInputs/MultiSelect';
+import MultiSelect, { IOption } from '../FormInputs/MultiSelect';
+import { IWidgetProperty, IPluginProperty } from 'components/ConfigurationGroup/types';
+import PropertyRow from 'components/ConfigurationGroup/PropertyRow';
+import InputFieldDropdown from '../InputFieldDropdown';
+import { IconButton } from '@material-ui/core';
+import If from 'components/If';
+import ExpandLessIcon from '@material-ui/icons/ExpandLess';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import FormControl from '@material-ui/core/FormControl';
 
 const styles = (theme): StyleRules => {
   return {
-    ...AbstractRowStyles(theme),
+    // ...AbstractRowStyles(theme),
+    root: {
+      minHeight: '50px',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto auto auto',
+      alignItems: 'end',
+      '& > button': {
+        width: '40px',
+        height: '40px',
+        margin: 'auto',
+      },
+    },
     inputContainer: {
       display: 'grid',
-      gridTemplateColumns: '1fr 1fr 30px 1fr',
+      gridTemplateColumns: '40px 1fr 30px 1fr 50px 1fr',
       gridGap: '10px',
     },
     disabled: {
@@ -39,152 +57,257 @@ const styles = (theme): StyleRules => {
     separator: {
       textAlign: 'center',
     },
+    transformContainer: {
+      marginLeft: '20px',
+      marginTop: '15px',
+      marginBottom: '15px',
+    },
+    transformProperty: {
+      '& > *': {
+        padding: '15px 0px 10px',
+      },
+    },
   };
 };
 
-interface IComplexDropdown {
-  value: string | number;
+export interface ITransformProp {
   label: string;
+  name: string;
+  options: IWidgetProperty[];
 }
-
-export type IDropdownOption = string | number | IComplexDropdown;
+export type FilterOption = IOption | string;
 
 interface IDLPRowProps extends IAbstractRowProps<typeof styles> {
-  placeholders: Record<string, string>;
-  dropdownOptions: IDropdownOption[];
+  transforms: ITransformProp[];
+  filters: FilterOption[];
+  extraConfig: any;
 }
 
-interface IKeyValueState {
+interface IDLPRowState {
   field: string;
-  filterScope: string;
+  transform: string;
   filter: string;
+  transformProperties: object;
+  expanded?: boolean;
 }
 
-type StateKeys = keyof IKeyValueState;
+type StateKeys = keyof IDLPRowState;
 
-class DLPRow extends AbstractRow<IDLPRowProps, IKeyValueState> {
+class DLPRow extends AbstractRow<IDLPRowProps, IDLPRowState> {
   public static defaultProps = {
-    placeholders: {
-      field: 'field',
-      filter: 'filter',
-    },
-    dropdownOptions: [],
+    transforms: [],
+    filters: [],
+    extraConfig: '',
+    expanded: false,
   };
 
   public state = {
     field: '',
-    filterScope: '',
+    transform: '',
     filter: '',
+    transformProperties: {},
+    expanded: false,
   };
 
   /**
    * Sample input: fieldName:filterScrope(filter)
    */
   public componentDidMount() {
-    const [field, filters] = this.props.value.split(':');
-    const { filterScope, filter } = this.extractFilterScropeAndFilter(filters);
-
-    this.setState({
-      field,
-      filterScope,
-      filter,
-    });
+    try {
+      const jsonString = this.props.value;
+      console.log(jsonString);
+      const j = JSON.parse(jsonString);
+      this.setState({ ...this.state, ...j });
+      console.log(j);
+    } catch (error) {
+      console.log('FF');
+      console.log(error);
+      this.setState({
+        field: '',
+        transform: '',
+        filter: '',
+        transformProperties: {},
+      });
+    }
   }
 
-  private extractFilterScropeAndFilter(fn) {
-    const defaultResponse = {
-      filterScope: '',
-      filter: '',
-    };
+  private handleChangeMultiSelect = (type: StateKeys, e: string) => {
+    if (type === 'filter') {
+      const noneWasSelected: boolean = this.state.filter.includes('NONE');
+      const noneIsSelected: boolean = e.includes('NONE');
 
-    if (!fn) {
-      return defaultResponse;
+      if (noneWasSelected && noneIsSelected) {
+        e = e.replace('NONE,', '');
+      } else if (!noneWasSelected && noneIsSelected) {
+        e = 'NONE';
+      }
     }
 
-    const openBracketIndex = fn.indexOf('(');
-    const closeBracketIndex = fn.indexOf(')');
+    this.handleChange(type, e);
+  };
 
-    if (openBracketIndex === -1 || closeBracketIndex === -1) {
-      return defaultResponse;
-    }
+  private handleChangeSelect = (type: StateKeys, e) => {
+    this.handleChange(type, e.target.value);
+    this.handleChange('expanded', true);
+  };
 
-    return {
-      filterScope: fn.substring(0, openBracketIndex),
-      filter: fn.substring(openBracketIndex + 1, closeBracketIndex),
+  private handleChangeTransformOptions(optionName, e) {
+    const newOptions = {
+      ...this.state.transformProperties,
+      [optionName]: e[optionName],
     };
+    this.handleChange('transformProperties', newOptions);
   }
 
-  private handleChange = (type: StateKeys, e) => {
+  private handleChange = (type: StateKeys, value) => {
     this.setState(
       {
-        [type]: e.target.value,
-      } as Pick<IKeyValueState, StateKeys>,
+        [type]: value,
+      } as Pick<IDLPRowState, StateKeys>,
       () => {
-        const { field, filterScope, filter } = this.state;
+        const { transform, filter } = this.state;
 
-        if (field.length === 0 || filterScope.length === 0 || filter.length === 0) {
+        if (transform.length === 0 || filter.length === 0) {
           this.onChange('');
           return;
         }
 
-        const updatedValue = `${filter}:${filterScope}(${field})`;
-        this.onChange(updatedValue);
+        const updatedValue = this.state;
+        // updatedValue.expanded = false;
+        this.onChange(JSON.stringify(updatedValue));
       }
     );
   };
 
   public renderInput = () => {
-    const dropdownOptions = this.props.dropdownOptions.map((option: IDropdownOption) => {
+    console.log(this.state);
+    const filters = this.props.filters.map((option: FilterOption) => {
       if (typeof option === 'object') {
         return option;
       }
 
       return {
-        label: option.toString(),
-        value: option,
+        id: option,
+        label: option,
       };
     });
 
+    const transforms = this.props.transforms;
+
     return (
-      <div className={this.props.classes.inputContainer}>
-        <Input
-          classes={{ disabled: this.props.classes.disabled }}
-          placeholder={this.props.placeholders.field}
-          onChange={this.handleChange.bind(this, 'field')}
-          value={this.state.field}
-          autoFocus={this.props.autofocus}
-          onKeyPress={this.handleKeyPress}
-          onKeyDown={this.handleKeyDown}
-          disabled={this.props.disabled}
-          inputRef={this.props.forwardedRef}
-        />
+      <React.Fragment>
+        <div>
+          <div className={this.props.classes.inputContainer}>
+            <span className={this.props.classes.separator}>Apply</span>
+            <FormControl>
+              <InputLabel htmlFor="test">Age</InputLabel>
+              <Select
+                inputProps={{
+                  name: 'test',
+                  id: 'test',
+                }}
+                classes={{ disabled: this.props.classes.disabled }}
+                value={this.state.transform}
+                onChange={this.handleChangeSelect.bind(this, 'transform')}
+                displayEmpty={true}
+                disabled={false}
+                placeholder="TEST"
+              >
+                {transforms.map((option) => {
+                  return (
+                    <MenuItem value={option.name} key={option.name}>
+                      {option.label}
+                    </MenuItem>
+                  );
+                })}
+              </Select>
+              {/* <FormHelperText>Some important helper text</FormHelperText> */}
+            </FormControl>
+            <span className={this.props.classes.separator}>on</span>
+            <MultiSelect
+              disabled={false}
+              value={this.state.filter}
+              widgetProps={{ options: filters }}
+              onChange={this.handleChangeMultiSelect.bind(this, 'filter')}
+            />
+            <span className={this.props.classes.separator}>within</span>
+            <InputFieldDropdown
+              isMultiSelect={true}
+              value={this.state.field}
+              onChange={this.handleChangeMultiSelect.bind(this, 'field')}
+              disabled={false}
+              extraConfig={this.props.extraConfig}
+            />
+          </div>
 
-        <Select
-          classes={{ disabled: this.props.classes.disabled }}
-          value={this.state.filterScope}
-          onChange={this.handleChange.bind(this, 'filterScope')}
-          displayEmpty={true}
-          disabled={this.props.disabled}
-        >
-          {dropdownOptions.map((option) => {
-            return (
-              <MenuItem value={option.value} key={option.value}>
-                {option.label}
-              </MenuItem>
-            );
-          })}
-        </Select>
+          <div className={this.props.classes.transformContainer}>
+            {transforms.map((transform) => {
+              if (transform.name !== this.state.transform || !this.state.expanded) {
+                return;
+              }
+              return (
+                <React.Fragment>
+                  <h6>{transform.label} properties</h6>
+                  {transform.options.map((property, j) => {
+                    const pluginProp: IPluginProperty = {
+                      description: '',
+                      macroSupported: false,
+                      required: false,
+                    };
+                    if (property['widget-attributes']) {
+                      if (property['widget-attributes'].macro) {
+                        pluginProp.macroSupported = property['widget-attributes'].macro;
+                      }
+                      if (property['widget-attributes'].description) {
+                        pluginProp.description = property['widget-attributes'].description;
+                      }
+                      if (property['widget-attributes'].required) {
+                        pluginProp.required = property['widget-attributes'].required;
+                      }
+                    }
 
-        <Input
-          classes={{ disabled: this.props.classes.disabled }}
-          placeholder={this.props.placeholders.filter}
-          onChange={this.handleChange.bind(this, 'filter')}
-          value={this.state.filter}
-          onKeyPress={this.handleKeyPress}
-          onKeyDown={this.handleKeyDown}
-          disabled={this.props.disabled}
-        />
-      </div>
+                    return (
+                      <div className={this.props.classes.transformProperty}>
+                        <PropertyRow
+                          key={`${property.name}-${j}`}
+                          widgetProperty={property}
+                          pluginProperty={pluginProp}
+                          value={this.state.transformProperties[property.name]}
+                          onChange={this.handleChangeTransformOptions.bind(this, property.name)}
+                          extraConfig={this.props.extraConfig}
+                          disabled={false}
+                        />
+                      </div>
+                    );
+                  })}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        <If condition={this.state.expanded}>
+          <IconButton
+            color="primary"
+            onClick={() => {
+              this.handleChange('expanded', !this.state.expanded);
+            }}
+          >
+            <ExpandLessIcon />
+          </IconButton>
+        </If>
+
+        <If condition={!this.state.expanded}>
+          <IconButton
+            color="primary"
+            onClick={() => {
+              this.handleChange('expanded', !this.state.expanded);
+            }}
+          >
+            <ExpandMoreIcon />
+          </IconButton>
+        </If>
+      </React.Fragment>
     );
   };
 }

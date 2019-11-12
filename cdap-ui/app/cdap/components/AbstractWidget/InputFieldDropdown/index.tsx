@@ -18,13 +18,16 @@ import Select from 'components/AbstractWidget/FormInputs/Select';
 import { IWidgetProps, IStageSchema } from 'components/AbstractWidget';
 import { objectQuery } from 'services/helpers';
 import { WIDGET_PROPTYPES } from 'components/AbstractWidget/constants';
+import MultiSelect from '../FormInputs/MultiSelect';
 
 interface IField {
   name: string;
   type: string;
 }
 
-interface IInputFieldProps extends IWidgetProps<null> {}
+interface IInputFieldProps extends IWidgetProps<null> {
+  isMultiSelect?: boolean;
+}
 
 // We are assuming all incoming stages have the same schema
 function getFields(schemas: IStageSchema[]) {
@@ -52,14 +55,33 @@ const InputFieldDropdown: React.FC<IInputFieldProps> = ({
   onChange,
   disabled,
   extraConfig,
+  isMultiSelect,
 }) => {
   const inputSchema = objectQuery(extraConfig, 'inputSchema');
   const fieldValues = getFields(inputSchema);
-  const widgetProps = {
-    options: fieldValues,
-  };
 
-  return <Select value={value} onChange={onChange} widgetProps={widgetProps} disabled={disabled} />;
+  if (isMultiSelect) {
+    const widgetProps = {
+      delimiter: ',',
+      options: fieldValues.map((field) => ({ id: field, label: field })),
+    };
+
+    return (
+      <MultiSelect
+        value={value}
+        onChange={onChange}
+        widgetProps={widgetProps}
+        disabled={disabled}
+      />
+    );
+  } else {
+    const widgetProps = {
+      options: fieldValues,
+    };
+    return (
+      <Select value={value} onChange={onChange} widgetProps={widgetProps} disabled={disabled} />
+    );
+  }
 };
 
 export default InputFieldDropdown;

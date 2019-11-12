@@ -15,32 +15,51 @@
  */
 
 import * as React from 'react';
-import DLPRow, { IDropdownOption } from 'components/AbstractWidget/DLPCustomWidget/DLPRow';
+import DLPRow, {
+  ITransformProp,
+  FilterOption,
+} from 'components/AbstractWidget/DLPCustomWidget/DLPRow';
 import ThemeWrapper from 'components/ThemeWrapper';
 import AbstractMultiRowWidget, {
   IMultiRowProps,
 } from 'components/AbstractWidget/AbstractMultiRowWidget';
 import { objectQuery } from 'services/helpers';
 import { WIDGET_PROPTYPES } from 'components/AbstractWidget/constants';
-import { IWidgetProperty } from 'components/ConfigurationGroup/types';
-
-interface ITransformProp {
-  label: string;
-  name: string;
-  options: IWidgetProperty[];
-}
 
 interface IDLPWidgetProps {
   transforms: ITransformProp[];
+  filters: FilterOption[];
   delimiter?: string;
 }
 
 interface IDLPProps extends IMultiRowProps<IDLPWidgetProps> {}
 
 class DLPWidgetView extends AbstractMultiRowWidget<IDLPProps> {
+  public editRow = (id, value) => {
+    this.values[id].value = value;
+    this.onChange();
+  };
+
+  public deconstructValues = (props) => {
+    try {
+      return JSON.parse(props.value);
+    } catch (error) {
+      return [];
+    }
+  };
+
+  public constructValues = () => {
+    return JSON.stringify(
+      this.state.rows
+        .filter((id) => this.values[id] && this.values[id].value)
+        .map((id) => this.values[id].value)
+    );
+  };
+
   public renderRow = (id, index) => {
-    const placeholders = objectQuery(this.props, 'widgetProps', 'placeholders');
-    const dropdownOptions = objectQuery(this.props, 'widgetProps', 'dropdownOptions');
+    console.log(this);
+    const transforms = objectQuery(this.props, 'widgetProps', 'transforms');
+    const filters = objectQuery(this.props, 'widgetProps', 'filters');
     return (
       <DLPRow
         key={id}
@@ -53,46 +72,21 @@ class DLPWidgetView extends AbstractMultiRowWidget<IDLPProps> {
         autofocus={this.state.autofocus === id}
         changeFocus={this.changeFocus}
         disabled={this.props.disabled}
-        placeholders={placeholders}
-        dropdownOptions={dropdownOptions}
+        transforms={transforms}
+        filters={filters}
         forwardedRef={this.values[id].ref}
         errors={this.props.errors}
+        extraConfig={this.props.extraConfig}
       />
     );
   };
 }
 
 export default function DLPWidget(props) {
-  alert(objectQuery(this.props, 'widgetProps', 'transforms'));
+  console.log(props);
   return (
     <ThemeWrapper>
-      {/* <DLPWidgetView {...props} /> */}
-      {/* {group.properties.map((property, j) => {
-        if (property.show === false) {
-          return null;
-        }
-        // Check if a field is present to display the error contextually
-        const errorObjs =
-          errors && errors.hasOwnProperty(property.name)
-            ? errors[property.name]
-            : null;
-        if (errorObjs) {
-          // Mark error as used
-          newUsedErrors[property.name] = errors[property.name];
-        }
-        return (
-          <PropertyRow
-            key={`${property.name}-${j}`}
-            widgetProperty={property}
-            pluginProperty={pluginProperties[property.name]}
-            value={values[property.name]}
-            onChange={changeParentHandler}
-            extraConfig={extraConfig}
-            disabled={disabled}
-            errors={errorObjs}
-          />
-        );
-      })} */}
+      <DLPWidgetView {...props} />
     </ThemeWrapper>
   );
 }

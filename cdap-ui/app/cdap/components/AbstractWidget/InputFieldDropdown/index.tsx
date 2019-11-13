@@ -66,11 +66,16 @@ const InputFieldDropdown: React.FC<IInputFieldProps> = ({
 
   const fieldValues = getFields(inputSchema, allowedTypes);
 
-  value = value
+  const newValue = value
     .toString()
     .split(delimiter)
     .filter((value) => fieldValues.includes(value))
     .toString();
+
+  if (newValue !== value) {
+    onChange(newValue);
+    value = newValue;
+  }
 
   if (isMultiSelect) {
     const multiSelectWidgetProps = {

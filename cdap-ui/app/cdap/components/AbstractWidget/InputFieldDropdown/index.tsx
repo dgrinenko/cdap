@@ -25,12 +25,12 @@ interface IField {
   type: string;
 }
 
-interface IInputFieldProps extends IWidgetProps<null> {
-  isMultiSelect?: boolean;
-}
+const delimiter: string = ',';
+
+interface IInputFieldProps extends IWidgetProps<object> {}
 
 // We are assuming all incoming stages have the same schema
-function getFields(schemas: IStageSchema[]) {
+function getFields(schemas: IStageSchema[], allowedTypes: string[]) {
   let fields = [];
   if (!schemas || schemas.length === 0) {
     return fields;
@@ -41,7 +41,9 @@ function getFields(schemas: IStageSchema[]) {
     const unparsedFields = JSON.parse(stage.schema).fields;
 
     if (unparsedFields.length > 0) {
-      fields = unparsedFields.map((field: IField) => field.name);
+      fields = unparsedFields
+        .filter((field: IField) => allowedTypes.length == 0 || allowedTypes.includes(field.type))
+        .map((field: IField) => field.name);
     }
   } catch {
     // tslint:disable-next-line: no-console
@@ -55,14 +57,24 @@ const InputFieldDropdown: React.FC<IInputFieldProps> = ({
   onChange,
   disabled,
   extraConfig,
-  isMultiSelect,
+  widgetProps,
 }) => {
   const inputSchema = objectQuery(extraConfig, 'inputSchema');
-  const fieldValues = getFields(inputSchema);
+
+  const isMultiSelect: boolean = objectQuery(widgetProps, 'multiselect') || false;
+  const allowedTypes: string[] = objectQuery(widgetProps, 'allowed-types') || [];
+
+  const fieldValues = getFields(inputSchema, allowedTypes);
+
+  value = value
+    .toString()
+    .split(delimiter)
+    .filter((value) => fieldValues.includes(value))
+    .toString();
 
   if (isMultiSelect) {
-    const widgetProps = {
-      delimiter: ',',
+    const multiSelectWidgetProps = {
+      delimiter,
       options: fieldValues.map((field) => ({ id: field, label: field })),
     };
 
@@ -70,16 +82,21 @@ const InputFieldDropdown: React.FC<IInputFieldProps> = ({
       <MultiSelect
         value={value}
         onChange={onChange}
-        widgetProps={widgetProps}
+        widgetProps={multiSelectWidgetProps}
         disabled={disabled}
       />
     );
   } else {
-    const widgetProps = {
+    const slectWidgetProps = {
       options: fieldValues,
     };
     return (
-      <Select value={value} onChange={onChange} widgetProps={widgetProps} disabled={disabled} />
+      <Select
+        value={value}
+        onChange={onChange}
+        widgetProps={slectWidgetProps}
+        disabled={disabled}
+      />
     );
   }
 };

@@ -67,7 +67,6 @@ const CustomSelect: React.FC<ISelectProps> = ({
 
   useEffect(
     () => {
-      console.log(value);
       setSelection(value ? value.toString() : '');
     },
     [value]

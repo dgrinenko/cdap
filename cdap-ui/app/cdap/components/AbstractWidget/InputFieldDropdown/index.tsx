@@ -27,7 +27,12 @@ interface IField {
 
 const delimiter: string = ',';
 
-interface IInputFieldProps extends IWidgetProps<object> {}
+interface IInputFieldWidgetProps {
+  multiselect?: boolean;
+  supportedTypes?: string[];
+}
+
+interface IInputFieldProps extends IWidgetProps<IInputFieldWidgetProps> {}
 
 // We are assuming all incoming stages have the same schema
 function getFields(schemas: IStageSchema[], allowedTypes: string[]) {
@@ -61,8 +66,8 @@ const InputFieldDropdown: React.FC<IInputFieldProps> = ({
 }) => {
   const inputSchema = objectQuery(extraConfig, 'inputSchema');
 
-  const isMultiSelect: boolean = objectQuery(widgetProps, 'multiselect') || false;
-  const allowedTypes: string[] = objectQuery(widgetProps, 'allowed-types') || [];
+  const isMultiSelect: boolean = widgetProps.multiselect || false;
+  const allowedTypes: string[] = widgetProps.supportedTypes || [];
 
   const fieldValues = getFields(inputSchema, allowedTypes);
 

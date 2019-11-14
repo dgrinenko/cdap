@@ -74,6 +74,7 @@ export interface ITransformProp {
   label: string;
   name: string;
   options: IWidgetProperty[];
+  supportedTypes?: string[];
 }
 export type FilterOption = IOption | string;
 
@@ -193,6 +194,15 @@ class DLPRow extends AbstractRow<IDLPRowProps, IDLPRowState> {
     });
 
     const transforms = this.props.transforms;
+    const inputFieldProps = {
+      multiselect: true,
+      supportedTypes: [],
+    };
+    if (this.state.transform !== '') {
+      inputFieldProps.supportedTypes =
+        transforms.filter((transform) => transform.name == this.state.transform)[0]
+          .supportedTypes || [];
+    }
 
     return (
       <React.Fragment>
@@ -200,12 +210,7 @@ class DLPRow extends AbstractRow<IDLPRowProps, IDLPRowState> {
           <div className={this.props.classes.inputContainer}>
             <span className={this.props.classes.separator}>Apply</span>
             <FormControl>
-              <InputLabel htmlFor="test">Age</InputLabel>
               <Select
-                inputProps={{
-                  name: 'test',
-                  id: 'test',
-                }}
                 classes={{ disabled: this.props.classes.disabled }}
                 value={this.state.transform}
                 onChange={this.handleChangeSelect.bind(this, 'transform')}
@@ -221,7 +226,6 @@ class DLPRow extends AbstractRow<IDLPRowProps, IDLPRowState> {
                   );
                 })}
               </Select>
-              {/* <FormHelperText>Some important helper text</FormHelperText> */}
             </FormControl>
             <span className={this.props.classes.separator}>on</span>
             <MultiSelect
@@ -232,7 +236,7 @@ class DLPRow extends AbstractRow<IDLPRowProps, IDLPRowState> {
             />
             <span className={this.props.classes.separator}>within</span>
             <InputFieldDropdown
-              isMultiSelect={true}
+              widgetProps={inputFieldProps}
               value={this.state.field}
               onChange={this.handleChangeMultiSelect.bind(this, 'field')}
               disabled={false}

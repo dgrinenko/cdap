@@ -30,14 +30,23 @@ const styles = (): StyleRules => {
     spinner: {
       fontSize: '16px',
     },
+    rightDiv: {
+      textAlign: 'right',
+    },
+    root: {},
   };
 };
 
-interface IGetSchemaProps extends IWidgetProps<null>, WithStyles<typeof styles> {}
+interface IGetSchemaWidgetProps {
+  position?: string;
+}
 
-const GetSchemaWidgetView: React.FC<IGetSchemaProps> = ({ extraConfig, classes }) => {
+interface IGetSchemaProps extends IWidgetProps<IGetSchemaWidgetProps>, WithStyles<typeof styles> {}
+
+const GetSchemaWidgetView: React.FC<IGetSchemaProps> = ({ extraConfig, classes, widgetProps }) => {
   const validateProperties = objectQuery(extraConfig, 'validateProperties');
   const [loading, setLoading] = React.useState<boolean>(false);
+  const position = widgetProps.position || '';
 
   function onClickHander() {
     if (loading) {
@@ -59,10 +68,10 @@ const GetSchemaWidgetView: React.FC<IGetSchemaProps> = ({ extraConfig, classes }
   );
 
   return (
-    <div>
+    <div className={position.includes('right') ? classes.rightDiv : ''}>
       <Button
-        variant="contained"
-        color="primary"
+        variant="outlined"
+        color="default"
         disabled={typeof validateProperties !== 'function'}
         onClick={onClickHander}
         className={classes.button}

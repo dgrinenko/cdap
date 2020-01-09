@@ -26,6 +26,7 @@ const TABLE1 = 'test1';
 const TABLE2 = 'test2';
 const TABLE1_FIELDS = ['field1', 'field2', 'field3'];
 const TABLE2_FIELDS = ['field1', 'field4'];
+const ALL_FIELDS_ALIASED = ['field', 'field2', 'field3', 'field1', 'field4'];
 
 describe('Creating pipeline with joiner in pipeline studio', () => {
   before(() => {
@@ -48,8 +49,10 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
   it('Should be able to build a complex pipeline with joiner widget', () => {
     cy.visit('/pipelines/ns/default/studio');
     const TEST_PIPELINE_NAME = 'joiner_pipeline_name';
+    const closeButton = '[data-testid="close-config-popover"]';
+    const getSchemaBtn = '[data-cy="get-schema-btn"]';
 
-    // Create two big query sources
+    // Build pipeline with two BQ sources, Joiner, and BQ sink
     const sourceNode1: INodeInfo = { nodeName: 'BigQueryTable', nodeType: 'batchsource' };
     const sourceNodeId1: INodeIdentifier = { ...sourceNode1, nodeId: '0' };
     const source1Properties = {
@@ -72,15 +75,11 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       serviceFilePath: DEFAULT_GCP_SERVICEACCOUNT_PATH,
     };
 
-    // Create joiner
     const joinerNode: INodeInfo = { nodeName: 'Joiner', nodeType: 'batchjoiner' };
     const joinerNodeId: INodeIdentifier = { ...joinerNode, nodeId: '2' };
 
-    // Create a sink node
     const sinkNode: INodeInfo = { nodeName: 'BigQueryTable', nodeType: 'batchsink' };
     const sinkNodeId: INodeIdentifier = { ...sinkNode, nodeId: '3' };
-
-    // Add all nodes and connect them
 
     cy.add_node_to_canvas(sourceNode1);
     cy.add_node_to_canvas(sourceNode2);
@@ -127,7 +126,7 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
     });
 
-    cy.get('[data-testid="close-config-popover"]').click();
+    cy.get(closeButton).click();
 
     // configure the plugin properties for BigQuery source 2
     cy.get('[data-cy="plugin-node-BigQueryTable-batchsource-1"] .node .node-configure-btn')
@@ -145,8 +144,8 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       .type(source2Properties.serviceFilePath);
 
     // Use get Schema button to check fields for source2
-    cy.get('[data-cy="get-schema-btn"]').click();
-    cy.get('[data-cy="get-schema-btn"]', { timeout: 3000 }).contains('Get Schema');
+    cy.get(getSchemaBtn).click();
+    cy.get(getSchemaBtn, { timeout: 3000 }).contains('Get Schema');
 
     cy.get('[data-cy="plugin-output-schema-container"]').scrollIntoView();
 
@@ -154,37 +153,66 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
     });
 
-    cy.get('[data-testid="close-config-popover"]').click();
+    cy.get(closeButton).click();
 
     // check if schemas propagated correctly to the joiner widget
-    cy.get('[data-cy="plugin-node-Joiner-batchjoiner-1"] .node .node-configure-btn')
+    cy.get('[data-cy="plugin-node-Joiner-batchjoiner-2"] .node .node-configure-btn')
       .invoke('show')
       .click();
 
     // Check for both input stages in properties
-    cy.get('[data-cy="BigQuery-input-stage"]').should('exist');
-    cy.get('[data-cy="Bigquery2-input-stage"]').should('exist');
+    cy.get('[data-cy="BigQueryTable-input-stage"]').should('exist');
+    cy.get('[data-cy="BigQueryTable2-input-stage"]').should('exist');
 
     // Check the fields for each input
-    cy.get('[data-cy="BigQuery-stage-expansion-panel"]').click();
+    cy.get('[data-cy="BigQueryTable-stage-expansion-panel"]').click();
+
     TABLE1_FIELDS.forEach((field) => {
       cy.get(`[data-cy="${field}-field-selector-name"]`).should('exist');
     });
 
-    cy.get('[data-cy="BigQuery-stage-expansion-panel"]').click();
-    cy.get('[data-cy="BigQuery2-stage-expansion-panel"]').click();
+    // Change alias of field 1
+
+    cy.get(
+      '[data-cy="BigQueryTable-stage-expansion-panel"] [data-cy="field1-field-selector-alias-textbox"] input'
+    )
+      .clear()
+      .type('field');
+
+    cy.get('[data-cy="BigQueryTable-stage-expansion-panel"]').click();
+    cy.get('[data-cy="BigQueryTable2-stage-expansion-panel"]').click();
+
     TABLE2_FIELDS.forEach((field) => {
       cy.get(`[data-cy="${field}-field-selector-name"]`).should('exist');
     });
 
+    cy.get('[data-cy="BigQueryTable2-stage-expansion-panel"]').click();
+
     // Check the output schema
+    cy.get(getSchemaBtn, { timeout: 3000 }).contains('Get Schema');
+    cy.get('[data-cy="plugin-output-schema-container"]').scrollIntoView();
+    cy.get('[data-cy="plugin-output-schema-container"]').within(() => {
+      ALL_FIELDS_ALIASED.forEach((field) => {
+        cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
+      });
+    });
 
-    // set name and description for pipeline
+    cy.get(closeButton).click();
 
-    // Export the pipeline to joiner is configured correctly
+    // Open and close sink to propagate schema
+    cy.get('[data-cy="plugin-node-BigQueryTable-batchsink-2"] .node .node-configure-btn')
+      .invoke('show')
+      .click();
 
-    // Deploy pipeline
+    cy.get(closeButton).click();
 
-    // Check if pipeline deployed
+    // Export the pipeline to see if joiner is configured correctly
+    cy.get_pipeline_json().then((pipelineConfig) => {
+      const stages = pipelineConfig.config.stages;
+      const sinkConfig = stages.find((stage) => stage.name === 'BigQuery3');
+      ALL_FIELDS_ALIASED.forEach((field) => {
+        expect(sinkConfig.schema).to.have.ownProperty(field);
+      });
+    });
   });
 });

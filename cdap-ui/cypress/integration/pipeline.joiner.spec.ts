@@ -186,10 +186,10 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       cy.get(`[data-cy="${field}-field-selector-name"]`).should('exist');
     });
 
-    cy.get('[data-cy="BigQueryTable2-stage-expansion-panel"]').click();
-
     // Check the output schema
-    cy.get(getSchemaBtn, { timeout: 3000 }).contains('Get Schema');
+    cy.get(getSchemaBtn, { timeout: 3000 })
+      .click()
+      .contains('Get Schema');
     cy.get('[data-cy="plugin-output-schema-container"]').scrollIntoView();
     cy.get('[data-cy="plugin-output-schema-container"]').within(() => {
       ALL_FIELDS_ALIASED.forEach((field) => {
@@ -200,7 +200,7 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
     cy.get(closeButton).click();
 
     // Open and close sink to propagate schema
-    cy.get('[data-cy="plugin-node-BigQueryTable-batchsink-2"] .node .node-configure-btn')
+    cy.get('[data-cy="plugin-node-BigQueryTable-batchsink-3"] .node .node-configure-btn')
       .invoke('show')
       .click();
 

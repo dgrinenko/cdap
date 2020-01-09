@@ -119,13 +119,17 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
     // Validate and check fields for source1
     cy.get('[data-cy="plugin-properties-validate-btn"]').click();
     cy.get('[data-cy="plugin-validation-success-msg"]', { timeout: 4000 }).should('exist');
+
+    // cy.get('[data-cy="plugin-properties-config-popover-body"]').scrollTo('top');
+    cy.get('[data-cy="plugin-output-schema-container"]').scrollIntoView();
+
     TABLE1_FIELDS.forEach((field) => {
       cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
     });
 
     cy.get('[data-testid="close-config-popover"]').click();
 
-    // configure the plugin properties for BigQuery source 1
+    // configure the plugin properties for BigQuery source 2
     cy.get('[data-cy="plugin-node-BigQueryTable-batchsource-1"] .node .node-configure-btn')
       .invoke('show')
       .click();
@@ -141,8 +145,10 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       .type(source2Properties.serviceFilePath);
 
     // Use get Schema button to check fields for source2
-    cy.get('[data-cy="get-schema-btn"').click();
-    cy.get('[data-cy="get-schema-btn"', { timeout: 3000 }).contains('GET SCHEMA');
+    cy.get('[data-cy="get-schema-btn"]').click();
+    cy.get('[data-cy="get-schema-btn"]', { timeout: 3000 }).contains('Get Schema');
+
+    cy.get('[data-cy="plugin-output-schema-container"]').scrollIntoView();
 
     TABLE2_FIELDS.forEach((field) => {
       cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
@@ -155,9 +161,21 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
       .invoke('show')
       .click();
 
-    // Check for both inputs
+    // Check for both input stages in properties
+    cy.get('[data-cy="BigQuery-input-stage"]').should('exist');
+    cy.get('[data-cy="Bigquery2-input-stage"]').should('exist');
 
     // Check the fields for each input
+    cy.get('[data-cy="BigQuery-stage-expansion-panel"]').click();
+    TABLE1_FIELDS.forEach((field) => {
+      cy.get(`[data-cy="${field}-field-selector-name"]`).should('exist');
+    });
+
+    cy.get('[data-cy="BigQuery-stage-expansion-panel"]').click();
+    cy.get('[data-cy="BigQuery2-stage-expansion-panel"]').click();
+    TABLE2_FIELDS.forEach((field) => {
+      cy.get(`[data-cy="${field}-field-selector-name"]`).should('exist');
+    });
 
     // Check the output schema
 

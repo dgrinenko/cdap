@@ -24,6 +24,8 @@ const TEST_BQ_DATASET_PROJECT = 'datasetproject';
 const TEST_DATASET = 'joiner_test';
 const TABLE1 = 'test1';
 const TABLE2 = 'test2';
+const TABLE1_FIELDS = ['field1', 'field2', 'field3'];
+const TABLE2_FIELDS = ['field1', 'field4'];
 
 describe('Creating pipeline with joiner in pipeline studio', () => {
   before(() => {
@@ -78,7 +80,7 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
     const sinkNode: INodeInfo = { nodeName: 'BigQueryTable', nodeType: 'batchsink' };
     const sinkNodeId: INodeIdentifier = { ...sinkNode, nodeId: '3' };
 
-    // Add all nodes
+    // Add all nodes and connect them
 
     cy.add_node_to_canvas(sourceNode1);
     cy.add_node_to_canvas(sourceNode2);
@@ -92,7 +94,6 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
     cy.get('[data-cy="pipeline-clean-up-graph-control"]').click();
     cy.get('[data-cy="pipeline-fit-to-screen-control"]').click();
 
-    // connect em
     cy.connect_two_nodes(sourceNodeId1, joinerNodeId, getGenericEndpoint);
     cy.connect_two_nodes(sourceNodeId2, joinerNodeId, getGenericEndpoint);
     cy.connect_two_nodes(joinerNodeId, sinkNodeId, getGenericEndpoint);
@@ -100,18 +101,72 @@ describe('Creating pipeline with joiner in pipeline studio', () => {
     cy.get('[data-cy="pipeline-clean-up-graph-control"]').click();
     cy.get('[data-cy="pipeline-fit-to-screen-control"]').click();
 
-    // configure the plugin properties
-    // check if "get schema" button worked - did the correct fields get populated?
+    // configure the plugin properties for BigQuery source 1
+    cy.get('[data-cy="plugin-node-BigQueryTable-batchsource-0"] .node .node-configure-btn')
+      .invoke('show')
+      .click();
+
+    cy.get('input[data-cy="referenceName"]').type(source1Properties.referenceName);
+    cy.get('input[data-cy="project"]')
+      .clear()
+      .type(source1Properties.project);
+    cy.get('input[data-cy="dataset"]').type(source1Properties.dataset);
+    cy.get('input[data-cy="table"]').type(source1Properties.table);
+    cy.get('input[data-cy="serviceFilePath"]')
+      .clear()
+      .type(source1Properties.serviceFilePath);
+
+    // Validate and check fields for source1
+    cy.get('[data-cy="plugin-properties-validate-btn"]').click();
+    cy.get('[data-cy="plugin-validation-success-msg"]', { timeout: 4000 }).should('exist');
+    TABLE1_FIELDS.forEach((field) => {
+      cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
+    });
+
+    cy.get('[data-testid="close-config-popover"]').click();
+
+    // configure the plugin properties for BigQuery source 1
+    cy.get('[data-cy="plugin-node-BigQueryTable-batchsource-1"] .node .node-configure-btn')
+      .invoke('show')
+      .click();
+
+    cy.get('input[data-cy="referenceName"]').type(source2Properties.referenceName);
+    cy.get('input[data-cy="project"]')
+      .clear()
+      .type(source2Properties.project);
+    cy.get('input[data-cy="dataset"]').type(source2Properties.dataset);
+    cy.get('input[data-cy="table"]').type(source2Properties.table);
+    cy.get('input[data-cy="serviceFilePath"]')
+      .clear()
+      .type(source2Properties.serviceFilePath);
+
+    // Use get Schema button to check fields for source2
+    cy.get('[data-cy="get-schema-btn"').click();
+    cy.get('[data-cy="get-schema-btn"', { timeout: 3000 }).contains('GET SCHEMA');
+
+    TABLE2_FIELDS.forEach((field) => {
+      cy.get(`[data-cy="${field}-schema-field"]`).should('exist');
+    });
+
+    cy.get('[data-testid="close-config-popover"]').click();
 
     // check if schemas propagated correctly to the joiner widget
-    // Fix the alias thing
+    cy.get('[data-cy="plugin-node-Joiner-batchjoiner-1"] .node .node-configure-btn')
+      .invoke('show')
+      .click();
 
-    // Click on "get schema" and check output schema in Joiner
+    // Check for both inputs
+
+    // Check the fields for each input
+
+    // Check the output schema
 
     // set name and description for pipeline
 
-    // Export the pipeline to validate pipeline is configured correctly
+    // Export the pipeline to joiner is configured correctly
+
     // Deploy pipeline
+
     // Check if pipeline deployed
   });
 });

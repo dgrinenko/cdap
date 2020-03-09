@@ -106,9 +106,21 @@ export default function PipelineContextMenu({
   const menuOptions: IContextMenuOption[] = [
     {
       name: 'add-wrangler-source',
-      label: 'Add a wrangler source',
+      label: 'Wrangle',
       icon: <IconSVG name="icon-DataPreparation" />,
       onClick: () => setShowWranglerModal(!showWranglerModal),
+    },
+    {
+      type: 'divider',
+    },
+    {
+      name: 'pipeline-node-paste',
+      label: 'Paste',
+      icon: <IconSVG name="icon-filecopyaction" />,
+      onClick: () => {
+        getNodesFromClipBoard().then(onNodesPaste);
+      },
+      disabled: pasteOptionDisabled,
     },
     {
       name: 'zoom-in',
@@ -133,15 +145,6 @@ export default function PipelineContextMenu({
       label: 'Align',
       icon: <IconSVG name="icon-clean" />,
       onClick: prettyPrintGraph,
-    },
-    {
-      name: 'pipeline-node-paste',
-      label: 'Paste',
-      icon: <IconSVG name="icon-filecopyaction" />,
-      onClick: () => {
-        getNodesFromClipBoard().then(onNodesPaste);
-      },
-      disabled: pasteOptionDisabled,
     },
   ];
   const onWranglerSourceAddWrapper = (...props) => {

@@ -73,6 +73,7 @@ angular.module(PKG.name + '.commons')
     var Mousetrap = window.CaskCommon.Mousetrap;
 
     vm.clearSelectedNodes = () => {
+      console.trace();
       vm.selectedNode = [];
       vm.instance.clearDragSelection();
       vm.instance.repaintEverything();
@@ -192,11 +193,16 @@ angular.module(PKG.name + '.commons')
       toggle: vm.isDisabled ? false : true,
       isMultiSelectEnabled: false,
       start: () => {
-        vm.clearSelectedNodes();
-        clearConnectionsSelection();
-        vm.selectionBox.isSelectionInProgress = true;
+        if (!vm.selectionBox.isSelectionInProgress) {
+          vm.clearSelectedNodes();
+          clearConnectionsSelection();
+          vm.selectionBox.isSelectionInProgress = true;
+        }
       },
       move: ({selected}) => {
+        if (!vm.selectionBox.isSelectionInProgress) {
+          vm.selectionBox.isSelectionInProgress = true;
+        }
         const selectedNodes = $scope.nodes.filter(node => {
           if (selected.indexOf(node.name) !== -1) {
             return true;
@@ -224,6 +230,7 @@ angular.module(PKG.name + '.commons')
       end: () => {
         const nodesToAddToDrag = vm.selectedNode.map(node => node.name);
         vm.instance.addToDragSelection(nodesToAddToDrag);
+        vm.selectionBox.isSelectionInProgress = false;
       },
       toggleSelectionMode: () => {
         if (!vm.selectionBox.toggle) {

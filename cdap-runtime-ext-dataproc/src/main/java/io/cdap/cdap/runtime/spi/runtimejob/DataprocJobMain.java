@@ -16,7 +16,6 @@
 
 package io.cdap.cdap.runtime.spi.runtimejob;
 
-import org.apache.twill.internal.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +51,7 @@ public class DataprocJobMain {
     if (args.length < 1) {
       throw new RuntimeException("An implementation of RuntimeJob classname should be provided as an argument.");
     }
+
     String runtimeJobClassName = args[0];
 
     ClassLoader cl = DataprocJobMain.class.getClassLoader();
@@ -113,14 +113,13 @@ public class DataprocJobMain {
   private static URL[] getClasspath(URLClassLoader cl, File tempDir) throws IOException {
     URL[] urls = cl.getURLs();
     List<URL> urlList = new ArrayList<>();
-    for (String file : Arrays.asList(Constants.Files.RESOURCES_JAR, Constants.Files.APPLICATION_JAR,
-                                     Constants.Files.TWILL_JAR)) {
+    for (String file : Arrays.asList(Constants.RESOURCES_JAR, Constants.APPLICATION_JAR, Constants.TWILL_JAR)) {
       File jar = new File(file);
       File jarDir = new File(tempDir, "expanded." + file);
       expand(jar, jarDir);
       // add url for dir
       urlList.add(jarDir.toURI().toURL());
-      if (file.equals(Constants.Files.RESOURCES_JAR)) {
+      if (file.equals(Constants.RESOURCES_JAR)) {
         continue;
       }
       urlList.addAll(createClassPathURLs(jarDir));

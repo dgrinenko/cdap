@@ -103,6 +103,7 @@ public class DefaultRuntimeJob implements RuntimeJob {
     // Create cConf with provided properties. These properties can be used to set configs for twill runner such as
     // connection string for discovery.
     CConfiguration cConf = createCConf(runtimeJobEnv);
+    System.setProperty(Constants.SPARK_COMPAT_ENV, cConf.get(Constants.AppFabric.SPARK_COMPAT));
 
     // Create injector and get program runner
     Injector injector = Guice.createInjector(createmodule(runtimeJobEnv, cConf));

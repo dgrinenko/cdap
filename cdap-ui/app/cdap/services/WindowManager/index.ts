@@ -22,6 +22,9 @@ const WINDOW_ON_FOCUS = 'WINDOW_FOCUS_EVENT';
 class WindowManager {
   public eventemitter = ee(ee);
   constructor() {
+    if (window.Cypress) {
+      return;
+    }
     if (ifvisible.now('hidden')) {
       this.onBlurEventHandler();
     }

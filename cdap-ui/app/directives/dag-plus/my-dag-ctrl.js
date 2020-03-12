@@ -73,7 +73,6 @@ angular.module(PKG.name + '.commons')
     var Mousetrap = window.CaskCommon.Mousetrap;
 
     vm.clearSelectedNodes = () => {
-      console.trace();
       vm.selectedNode = [];
       vm.instance.clearDragSelection();
       vm.instance.repaintEverything();
@@ -230,7 +229,6 @@ angular.module(PKG.name + '.commons')
       end: () => {
         const nodesToAddToDrag = vm.selectedNode.map(node => node.name);
         vm.instance.addToDragSelection(nodesToAddToDrag);
-        vm.selectionBox.isSelectionInProgress = false;
       },
       toggleSelectionMode: () => {
         if (!vm.selectionBox.toggle) {
@@ -1257,9 +1255,21 @@ angular.module(PKG.name + '.commons')
             $timeout.cancel(nodesTimeout);
           }
           nodesTimeout = $timeout(function () {
-            makeCommentsDraggable();
             makeNodesDraggable();
             initNodes();
+            makeCommentsDraggable();
+            /**
+             * TODO(https://issues.cask.co/browse/CDAP-16423): Need to debug why setting zoom on init doesn't set the correct zoom
+             *
+             * Without this, on initial load the nodes drag is weird. The cursor travels outside the node
+             * meaning the nodes are dragged only to some extent and not along with the mouse cursor.
+             * The underlying reason is that the zoom is incorrect in the graph. Once the zoom is set
+             * right the drag happens correctly.
+             *
+             * This is a escape hatch for us to set zoom and make dragging
+             * right one each node addition. This is not a perfect solution
+             */
+            setZoom(vm.instance.getZoom(), vm.instance);
           });
         }
       }, true);
@@ -1307,7 +1317,8 @@ angular.module(PKG.name + '.commons')
         event.stopPropagation();
       }
 
-      nodes.forEach(node => {
+      const newNodes = angular.copy(nodes);
+      newNodes.forEach(node => {
         DAGPlusPlusNodesActionsFactory.removeNode(node.name);
 
         if (Object.keys(splitterNodesPorts).indexOf(node.name) !== -1) {

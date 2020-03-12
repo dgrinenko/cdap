@@ -25,6 +25,7 @@ import FllField from 'components/FieldLevelLineage/v2/FllTable/FllField';
 import { FllContext, IContextState } from 'components/FieldLevelLineage/v2/Context/FllContext';
 import ExpandableField from 'components/FieldLevelLineage/v2/FllTable/FllExpandableField';
 import If from 'components/If';
+import FllTableHeader from 'components/FieldLevelLineage/v2/FllTable/FllTableHeader';
 
 // TO DO: Consolidate different fontsizes in ThemeWrapper
 const styles = (theme) => {
@@ -66,23 +67,6 @@ const styles = (theme) => {
         cursor: 'unset',
       },
     },
-    tableHeader: {
-      borderBottom: `2px solid ${theme.palette.grey[300]}`,
-      height: '40px',
-      paddingLeft: '10px',
-      fontWeight: 'bold',
-      fontSize: '1rem',
-      overflow: 'hidden',
-      ' & .table-name': {
-        overflow: 'hidden',
-        whiteSpace: 'nowrap',
-        textOverflow: 'ellipsis',
-      },
-    },
-    tableSubheader: {
-      color: theme.palette.grey[100],
-      fontWeight: 'normal',
-    },
     viewLineage: {
       visibility: 'hidden',
       color: theme.palette.blue[300],
@@ -97,25 +81,8 @@ interface ITableProps extends WithStyles<typeof styles> {
   isActive?: boolean;
 }
 
-function renderGridHeader(
-  fields: IField[],
-  isTarget: boolean,
-  isExpanded: boolean = false,
-  classes
-) {
-  const count: number = fields.length;
-  const tableName = fields[0].dataset;
-  const options = { context: count };
-  return (
-    <div className={classes.tableHeader}>
-      <div className="table-name">{tableName}</div>
-      <div className={classes.tableSubheader}>
-        {isTarget || isExpanded
-          ? T.translate('features.FieldLevelLineage.v2.FllTable.fieldsCount', options)
-          : T.translate('features.FieldLevelLineage.v2.FllTable.relatedFieldsCount', options)}
-      </div>
-    </div>
-  );
+function renderGridHeader(fields: IField[], isTarget: boolean, isExpanded: boolean = false) {
+  return <FllTableHeader fields={fields} isTarget={isTarget} isExpanded={isExpanded} />;
 }
 
 function renderGridBody(

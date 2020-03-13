@@ -30,7 +30,8 @@ const PREVIEW_SUCCESS_BANNER_MSG =
 const SINK_PATH_VAL = '/tmp/cdap-ui-integration-fixtures';
 const SOURCE_PATH_VAL = 'file:/tmp/cdap-ui-integration-fixtures/airports.csv';
 
-describe('Creating pipeline with macros ', () => {
+/* Disabling preview tests for now because our E2E tests don't have preview enabled
+ describe('Creating pipeline with macros ', () => {
   before(() => {
     loginIfRequired().then(() => {
       cy.getCookie('CDAP_Auth_Token').then(cookie => {
@@ -188,7 +189,7 @@ describe('Creating pipeline with macros ', () => {
     cy.get(`${dataCy('valium-banner-hydrator')} button`).click();
   });
 });
-
+ */
 describe('Deploying pipeline with temporary runtime arguments', () => {
   const runtimeArgsPipeline = `runtime_args_pipeline_${Date.now()}`;
   before(() => {

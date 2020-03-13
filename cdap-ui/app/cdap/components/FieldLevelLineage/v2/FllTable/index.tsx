@@ -81,8 +81,20 @@ interface ITableProps extends WithStyles<typeof styles> {
   isActive?: boolean;
 }
 
-function renderGridHeader(fields: IField[], isTarget: boolean, isExpanded: boolean = false) {
-  return <FllTableHeader fields={fields} isTarget={isTarget} isExpanded={isExpanded} />;
+function renderGridHeader(
+  tableInfo: ITableInfo,
+  fields: IField[],
+  isTarget: boolean,
+  isExpanded: boolean = false
+) {
+  return (
+    <FllTableHeader
+      tableInfo={tableInfo}
+      fields={fields}
+      isTarget={isTarget}
+      isExpanded={isExpanded}
+    />
+  );
 }
 
 function renderGridBody(
@@ -180,7 +192,14 @@ function FllTable({ tableId, tableInfo, type, isActive, classes }: ITableProps) 
         { [classes.targetTable]: isTarget },
         { [classes.activeTable]: isActive }
       )}
-      renderGridHeader={renderGridHeader.bind(null, fields, isTarget, isExpanded, classes)}
+      renderGridHeader={renderGridHeader.bind(
+        null,
+        tableInfo,
+        fields,
+        isTarget,
+        isExpanded,
+        classes
+      )}
       renderGridBody={renderGridBody.bind(
         this,
         fields,

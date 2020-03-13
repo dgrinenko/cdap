@@ -17,9 +17,15 @@
 import React, { useState, useContext } from 'react';
 import withStyles, { WithStyles, StyleRules } from '@material-ui/core/styles/withStyles';
 import classnames from 'classnames';
-import { IField } from 'components/FieldLevelLineage/v2/Context/FllContextHelper';
+import {
+  IField,
+  getTimeQueryParams,
+  ITableInfo,
+} from 'components/FieldLevelLineage/v2/Context/FllContextHelper';
+import { Link } from 'react-router-dom';
 import T from 'i18n-react';
 import If from 'components/If';
+import { FllContext, IContextState } from 'components/FieldLevelLineage/v2/Context/FllContext';
 
 const styles = (theme): StyleRules => {
   return {
@@ -44,23 +50,52 @@ const styles = (theme): StyleRules => {
 };
 
 interface ITableHeaderProps extends WithStyles<typeof styles> {
+  tableInfo: ITableInfo;
   fields: IField[];
   isTarget: boolean;
   isExpanded: boolean;
 }
 
-function FllTableHeader({ fields, isTarget, isExpanded = false, classes }: ITableHeaderProps) {
+function FllTableHeader({
+  tableInfo,
+  fields,
+  isTarget,
+  isExpanded = false,
+  classes,
+}: ITableHeaderProps) {
+  const [isHovering, setHoverState] = useState<boolean>(false);
+  const { selection, start, end } = useContext<IContextState>(FllContext);
+
+  const timeParams = getTimeQueryParams(selection, start, end);
+  const toggleHoverState = (nextState) => {
+    setHoverState(nextState);
+  };
   const count: number = fields.length;
   const tableName = fields[0].dataset;
-  const options = { context: count };
+  const i18nOptions = { context: count };
+  const linkPath = `/ns/${tableInfo.namespace}/datasets/${tableInfo.dataset}/fields${timeParams}`;
   return (
-    <div className={classes.tableHeader}>
+    <div
+      className={classes.tableHeader}
+      onMouseEnter={toggleHoverState.bind(this, true)}
+      onMouseLeave={toggleHoverState.bind(this, false)}
+    >
       <div className="table-name">{tableName}</div>
-      <div className={classes.tableSubheader}>
-        {isTarget || isExpanded
-          ? T.translate('features.FieldLevelLineage.v2.FllTable.fieldsCount', options)
-          : T.translate('features.FieldLevelLineage.v2.FllTable.relatedFieldsCount', options)}
-      </div>
+
+      <If condition={!isHovering || isTarget}>
+        <div className={classes.tableSubheader}>
+          {isTarget || isExpanded
+            ? T.translate('features.FieldLevelLineage.v2.FllTable.fieldsCount', i18nOptions)
+            : T.translate('features.FieldLevelLineage.v2.FllTable.relatedFieldsCount', i18nOptions)}
+        </div>
+      </If>
+      <If condition={isHovering}>
+        <span data-cy="view-lineage" className={classes.tableSubheader}>
+          <Link to={linkPath} className={classes.hoverText} title={tableName}>
+            {T.translate('features.FieldLevelLineage.v2.FllTable.FllTableHeader.viewLineage')}
+          </Link>
+        </span>
+      </If>
     </div>
   );
 }

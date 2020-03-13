@@ -41,6 +41,9 @@ const styles = (theme): StyleRules => {
         whiteSpace: 'nowrap',
         textOverflow: 'ellipsis',
       },
+      ' &.hovering': {
+        backgroundColor: theme.palette.grey[700],
+      },
     },
     tableSubheader: {
       color: theme.palette.grey[100],
@@ -76,7 +79,7 @@ function FllTableHeader({
   const linkPath = `/ns/${tableInfo.namespace}/datasets/${tableInfo.dataset}/fields${timeParams}`;
   return (
     <div
-      className={classes.tableHeader}
+      className={classnames(classes.tableHeader, { hovering: isHovering && !isTarget })}
       onMouseEnter={toggleHoverState.bind(this, true)}
       onMouseLeave={toggleHoverState.bind(this, false)}
     >

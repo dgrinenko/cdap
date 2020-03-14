@@ -14,9 +14,7 @@
  * the License.
  */
 
-package io.cdap.cdap.common.internal.remote;
-
-import com.google.common.base.Objects;
+package io.cdap.cdap.runtime.spi.service;
 
 import javax.annotation.Nullable;
 
@@ -70,8 +68,10 @@ public abstract class RemoteAuthenticator {
     if (className == null) {
       return null;
     }
-    ClassLoader cl = Objects.firstNonNull(Thread.currentThread().getContextClassLoader(),
-                                          RemoteAuthenticator.class.getClassLoader());
+    ClassLoader cl = Thread.currentThread().getContextClassLoader();
+    if (cl == null) {
+      cl = RemoteAuthenticator.class.getClassLoader();
+    }
     try {
       Class<?> cls = cl.loadClass(className);
       if (!RemoteAuthenticator.class.isAssignableFrom(cls)) {

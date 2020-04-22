@@ -41,8 +41,9 @@ class DraftActions extends React.PureComponent<IProps, IState> {
 
   public pipelineConfig = {};
 
-  private openExportModal = (): void => {
+  private handlePipelineExport = () => {
     const draft = this.props.draft;
+
     this.pipelineConfig = {
       name: draft.name,
       description: draft.description,
@@ -50,6 +51,38 @@ class DraftActions extends React.PureComponent<IProps, IState> {
       config: draft.config,
     };
 
+    if (window.sessionStorage.getItem('pipelineConfigTesting')) {
+      this.openExportModal();
+      return;
+    }
+
+    // Unless we are running an e2e test, just export the pipeline JSON
+    this.exportPipeline(this.pipelineConfig);
+  };
+
+  private exportPipeline = (pipelineConfig) => {
+    const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
+      pipelineConfig.artifact.name
+    }`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${exportFileName}.json`;
+
+    const clickHandler = (event) => {
+      event.stopPropagation();
+      setTimeout(() => {
+        this.closeExportModal();
+      }, 300);
+    };
+
+    a.addEventListener('click', clickHandler, false);
+    a.click();
+  };
+
+  private openExportModal = (): void => {
     this.setState({
       showExport: true,
     });
@@ -101,7 +134,7 @@ class DraftActions extends React.PureComponent<IProps, IState> {
   private actions: IAction[] = [
     {
       label: T.translate('commons.export'),
-      actionFn: this.openExportModal,
+      actionFn: this.handlePipelineExport,
     },
     {
       label: 'separator',
@@ -122,6 +155,7 @@ class DraftActions extends React.PureComponent<IProps, IState> {
           isOpen={this.state.showExport}
           onClose={this.closeExportModal}
           pipelineConfig={this.pipelineConfig}
+          onExport={this.handlePipelineExport}
         />
 
         {this.renderDeleteConfirmation()}

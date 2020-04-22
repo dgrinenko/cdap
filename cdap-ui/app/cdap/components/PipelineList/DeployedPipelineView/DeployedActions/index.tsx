@@ -56,13 +56,44 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
 
   private pipelineConfig = {};
 
-  private showExportModal = () => {
+  private handlePipelineExport = () => {
     getPipelineConfig(this.props.pipeline.name).subscribe((pipelineConfig) => {
       this.pipelineConfig = pipelineConfig;
 
-      this.setState({
-        showExport: true,
-      });
+      if (window.sessionStorage.getItem('pipelineConfigTesting')) {
+        this.showExportModal();
+        return;
+      }
+      // Unless we are running an e2e test, just export the pipeline JSON
+      this.exportPipeline(pipelineConfig);
+    });
+  };
+
+  private exportPipeline = (pipelineConfig) => {
+    const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
+      pipelineConfig.artifact.name
+    }`;
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${exportFileName}.json`;
+
+    const clickHandler = (event) => {
+      event.stopPropagation();
+      setTimeout(() => {
+        this.closeExportModal();
+      }, 300);
+    };
+
+    a.addEventListener('click', clickHandler, false);
+    a.click();
+  };
+
+  private showExportModal = () => {
+    this.setState({
+      showExport: true,
     });
   };
 
@@ -184,7 +215,7 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
     },
     {
       label: T.translate('commons.export'),
-      actionFn: this.showExportModal,
+      actionFn: this.handlePipelineExport,
     },
     {
       label: 'separator',
@@ -207,6 +238,7 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
           isOpen={this.state.showExport}
           onClose={this.closeExportModal}
           pipelineConfig={this.pipelineConfig}
+          onExport={this.handlePipelineExport}
         />
 
         {this.renderDeleteConfirmation()}

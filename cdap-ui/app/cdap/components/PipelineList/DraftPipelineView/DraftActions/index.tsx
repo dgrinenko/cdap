@@ -58,7 +58,7 @@ class DraftActions extends React.PureComponent<IProps, IState> {
     }
 
     // Unless we are running an e2e test, just export the pipeline JSON
-    downloadPipeline(this.pipelineConfig);
+    downloadPipeline(this.pipelineConfig, this.closeExportModal);
   };
 
   private openExportModal = (): void => {

@@ -69,28 +69,6 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
     });
   };
 
-  // private exportPipeline = (pipelineConfig) => {
-  //   const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
-  //   const url = URL.createObjectURL(blob);
-  //   const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
-  //     pipelineConfig.artifact.name
-  //   }`;
-
-  //   const a = document.createElement('a');
-  //   a.href = url;
-  //   a.download = `${exportFileName}.json`;
-
-  //   const clickHandler = (event) => {
-  //     event.stopPropagation();
-  //     setTimeout(() => {
-  //       this.closeExportModal();
-  //     }, 300);
-  //   };
-
-  //   a.addEventListener('click', clickHandler, false);
-  //   a.click();
-  // };
-
   private showExportModal = () => {
     this.setState({
       showExport: true,

@@ -21,6 +21,7 @@ import { IDraft } from 'components/PipelineList/DraftPipelineView/types';
 import ActionsPopover, { IAction } from 'components/ActionsPopover';
 import PipelineExportModal from 'components/PipelineExportModal';
 import ConfirmationModal from 'components/ConfirmationModal';
+import downloadPipeline from 'services/download-pipeline';
 
 const PREFIX = 'features.PipelineList.DeleteConfirmation';
 
@@ -57,29 +58,7 @@ class DraftActions extends React.PureComponent<IProps, IState> {
     }
 
     // Unless we are running an e2e test, just export the pipeline JSON
-    this.exportPipeline(this.pipelineConfig);
-  };
-
-  private exportPipeline = (pipelineConfig) => {
-    const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
-      pipelineConfig.artifact.name
-    }`;
-
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${exportFileName}.json`;
-
-    const clickHandler = (event) => {
-      event.stopPropagation();
-      setTimeout(() => {
-        this.closeExportModal();
-      }, 300);
-    };
-
-    a.addEventListener('click', clickHandler, false);
-    a.click();
+    downloadPipeline(this.pipelineConfig);
   };
 
   private openExportModal = (): void => {

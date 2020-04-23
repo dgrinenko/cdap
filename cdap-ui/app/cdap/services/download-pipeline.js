@@ -28,7 +28,7 @@
   const clickHandler = (event) => {
     event.stopPropagation();
     setTimeout(() => {
-      postExportCb()
+      typeof postExportCb === 'function' && postExportCb()
     }, 300);
   };
 

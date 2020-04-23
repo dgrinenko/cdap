@@ -248,7 +248,7 @@ class HydratorPlusPlusTopPanelCtrl {
     if (window.sessionStorage.getItem('pipelineConfigTesting')) {
       this.myPipelineExportModalService.show(config, exportConfig);
     } else {
-      this.myPipelineExportModalService.getJSON(config, exportConfig);
+      window.CaskCommon.DownloadPipeline(exportConfig);
     }
   }
   onSaveDraft() {

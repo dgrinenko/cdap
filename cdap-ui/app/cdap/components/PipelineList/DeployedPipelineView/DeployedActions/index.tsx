@@ -27,7 +27,7 @@ import { getCurrentNamespace } from 'services/NamespaceStore';
 import { MyScheduleApi } from 'api/schedule';
 import { GLOBALS } from 'services/global-constants';
 import T from 'i18n-react';
-
+import downloadPipeline from 'services/download-pipeline';
 const PREFIX = 'features.PipelineList.DeleteConfirmation';
 
 interface IProps {
@@ -65,31 +65,31 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
         return;
       }
       // Unless we are running an e2e test, just export the pipeline JSON
-      this.exportPipeline(pipelineConfig);
+      downloadPipeline(pipelineConfig, this.closeExportModal);
     });
   };
 
-  private exportPipeline = (pipelineConfig) => {
-    const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
-      pipelineConfig.artifact.name
-    }`;
+  // private exportPipeline = (pipelineConfig) => {
+  //   const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
+  //   const url = URL.createObjectURL(blob);
+  //   const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
+  //     pipelineConfig.artifact.name
+  //   }`;
 
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${exportFileName}.json`;
+  //   const a = document.createElement('a');
+  //   a.href = url;
+  //   a.download = `${exportFileName}.json`;
 
-    const clickHandler = (event) => {
-      event.stopPropagation();
-      setTimeout(() => {
-        this.closeExportModal();
-      }, 300);
-    };
+  //   const clickHandler = (event) => {
+  //     event.stopPropagation();
+  //     setTimeout(() => {
+  //       this.closeExportModal();
+  //     }, 300);
+  //   };
 
-    a.addEventListener('click', clickHandler, false);
-    a.click();
-  };
+  //   a.addEventListener('click', clickHandler, false);
+  //   a.click();
+  // };
 
   private showExportModal = () => {
     this.setState({

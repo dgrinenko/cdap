@@ -56,7 +56,6 @@ describe('Pipeline multi-select nodes + context menu for plugins & canvas', () =
     cy.visit('/pipelines/ns/default/studio');
     cy.create_simple_pipeline().then(({ sourceNodeId, sinkNodeId }) => {
       cy.select_from_to(sourceNodeId, sinkNodeId);
-      cy.pause();
       cy.get(Helpers.getNodeSelectorFromNodeIndentifier(sourceNodeId)).rightclick();
       cy.get('li[role="menuitem"]').contains('Copy Plugins');
       cy.get('li[role="menuitem"]')

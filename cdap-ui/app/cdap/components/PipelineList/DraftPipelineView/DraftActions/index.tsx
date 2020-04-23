@@ -32,12 +32,14 @@ interface IProps {
 interface IState {
   showExport: boolean;
   showDeleteConfirmation: boolean;
+  showPopover?: boolean;
 }
 
 class DraftActions extends React.PureComponent<IProps, IState> {
   public state = {
     showExport: false,
     showDeleteConfirmation: false,
+    showPopover: false,
   };
 
   public pipelineConfig = {};
@@ -56,19 +58,25 @@ class DraftActions extends React.PureComponent<IProps, IState> {
       this.openExportModal();
       return;
     }
+    const postExportCb = () => {
+      this.pipelineConfig = {};
+      this.setState({ showPopover: false });
+    };
 
     // Unless we are running an e2e test, just export the pipeline JSON
-    downloadPipeline(this.pipelineConfig, this.closeExportModal);
+    downloadPipeline(this.pipelineConfig, postExportCb);
   };
 
   private openExportModal = (): void => {
     this.setState({
       showExport: true,
+      showPopover: false,
     });
   };
 
   private closeExportModal = (): void => {
     this.pipelineConfig = {};
+
     this.setState({
       showExport: false,
     });
@@ -77,7 +85,12 @@ class DraftActions extends React.PureComponent<IProps, IState> {
   private toggleDeleteConfirmation = () => {
     this.setState({
       showDeleteConfirmation: !this.state.showDeleteConfirmation,
+      showPopover: false,
     });
+  };
+
+  private togglePopover = () => {
+    this.setState({ showPopover: !this.state.showPopover });
   };
 
   private renderConfirmationBody = () => {
@@ -128,7 +141,11 @@ class DraftActions extends React.PureComponent<IProps, IState> {
   public render() {
     return (
       <div className="action" onClick={(e) => e.preventDefault()}>
-        <ActionsPopover actions={this.actions} />
+        <ActionsPopover
+          actions={this.actions}
+          showPopover={this.state.showPopover}
+          togglePopover={this.togglePopover}
+        />
 
         <PipelineExportModal
           isOpen={this.state.showExport}

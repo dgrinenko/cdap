@@ -45,6 +45,7 @@ interface IState {
   showExport: boolean;
   showDeleteConfirmation: boolean;
   triggeredPipelines: ITriggeredPipeline[];
+  showPopover?: boolean;
 }
 
 class DeployedActionsView extends React.PureComponent<IProps, IState> {
@@ -52,9 +53,18 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
     showExport: false,
     showDeleteConfirmation: false,
     triggeredPipelines: [],
+    showPopover: false,
   };
 
   private pipelineConfig = {};
+
+  private handleClick = (e) => {
+    e.preventDefault();
+  };
+
+  private togglePopover = () => {
+    this.setState({ showPopover: !this.state.showPopover });
+  };
 
   private handlePipelineExport = () => {
     getPipelineConfig(this.props.pipeline.name).subscribe((pipelineConfig) => {
@@ -64,14 +74,20 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
         this.showExportModal();
         return;
       }
+
+      const postExportCb = () => {
+        this.pipelineConfig = {};
+        this.setState({ showPopover: false });
+      };
       // Unless we are running an e2e test, just export the pipeline JSON
-      downloadPipeline(pipelineConfig, this.closeExportModal);
+      downloadPipeline(pipelineConfig, postExportCb);
     });
   };
 
   private showExportModal = () => {
     this.setState({
       showExport: true,
+      showPopover: false,
     });
   };
 
@@ -153,6 +169,7 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
       this.setState({
         showDeleteConfirmation: true,
         triggeredPipelines: [],
+        showPopover: false,
       });
       return;
     }
@@ -171,6 +188,7 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
       this.setState({
         showDeleteConfirmation: true,
         triggeredPipelines: res,
+        showPopover: false,
       });
     });
   };
@@ -208,8 +226,12 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
   public render() {
     return (
       <div className="action">
-        <span onClick={(e) => e.preventDefault()}>
-          <ActionsPopover actions={this.actions} />
+        <span onClick={this.handleClick}>
+          <ActionsPopover
+            actions={this.actions}
+            showPopover={this.state.showPopover}
+            togglePopover={this.togglePopover}
+          />
         </span>
 
         <PipelineExportModal

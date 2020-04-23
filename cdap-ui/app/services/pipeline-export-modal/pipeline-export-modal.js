@@ -16,9 +16,6 @@
 
 angular.module(PKG.name + '.services')
   .service('myPipelineExportModalService', function($uibModal) {
-    this.getJSON = function(config, exportConfig) {
-
-    }
     this.show = function(config, exportConfig) {
       if (!config || !exportConfig) {
         return;

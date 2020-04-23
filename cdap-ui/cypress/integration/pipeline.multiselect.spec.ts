@@ -113,7 +113,6 @@ describe('Pipeline multi-select nodes + context menu for plugins & canvas', () =
     }
     cy.create_simple_pipeline().then(({ sourceNodeId, transformNodeId, sinkNodeId }) => {
       cy.select_from_to(sourceNodeId, transformNodeId);
-      cy.pause();
       cy.get(Helpers.getNodeSelectorFromNodeIndentifier(sourceNodeId)).rightclick();
       cy.get('[data-cy="menu-item-plugin copy"]:visible').click();
       cy.get('#dag-container').rightclick({ force: true });

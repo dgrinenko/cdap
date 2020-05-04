@@ -14,11 +14,11 @@
  * the License.
  */
 
- function DownloadPipeline(pipelineConfig, postExportCb) {
-  const blob = new Blob([JSON.stringify(pipelineConfig, null, 4)], { type: 'application/json' });
+ function DownloadFile(fileConfig, postExportCb) {
+  const blob = new Blob([JSON.stringify(fileConfig, null, 4)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
-  const exportFileName = `${pipelineConfig.name ? pipelineConfig.name : 'noname'}-${
-    pipelineConfig.artifact.name
+  const exportFileName = `${fileConfig.name ? fileConfig.name : 'noname'}-${
+    fileConfig.artifact.name
   }`;
 
   const a = document.createElement('a');
@@ -36,4 +36,4 @@
   a.click();
 };
 
-export default DownloadPipeline;
+export default DownloadFile;

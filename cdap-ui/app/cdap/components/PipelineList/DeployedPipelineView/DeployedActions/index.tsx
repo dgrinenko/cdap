@@ -27,7 +27,7 @@ import { getCurrentNamespace } from 'services/NamespaceStore';
 import { MyScheduleApi } from 'api/schedule';
 import { GLOBALS } from 'services/global-constants';
 import T from 'i18n-react';
-import downloadPipeline from 'services/download-pipeline';
+import downloadFile from 'services/download-file';
 const PREFIX = 'features.PipelineList.DeleteConfirmation';
 
 interface IProps {
@@ -80,7 +80,7 @@ class DeployedActionsView extends React.PureComponent<IProps, IState> {
         this.setState({ showPopover: false });
       };
       // Unless we are running an e2e test, just export the pipeline JSON
-      downloadPipeline(pipelineConfig, postExportCb);
+      downloadFile(pipelineConfig, postExportCb);
     });
   };
 

@@ -27,7 +27,7 @@ import T from 'i18n-react';
 import classnames from 'classnames';
 import { duplicatePipeline } from 'services/PipelineUtils';
 import cloneDeep from 'lodash/cloneDeep';
-import downloadPipeline from 'services/download-pipeline';
+import downloadFile from 'services/download-file';
 require('./PipelineDetailsActionsButton.scss');
 
 const PREFIX = 'features.PipelineDetails.TopPanel';
@@ -139,7 +139,7 @@ export default class PipelineDetailsActionsButton extends Component {
     const closePopoverCb = () => {
       this.setState({ showPopover: false });
     };
-    downloadPipeline(this.pipelineConfig, closePopoverCb);
+    downloadFile(this.pipelineConfig, closePopoverCb);
   };
 
   toggleExportModal = () => {

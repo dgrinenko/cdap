@@ -21,7 +21,7 @@ import { IDraft } from 'components/PipelineList/DraftPipelineView/types';
 import ActionsPopover, { IAction } from 'components/ActionsPopover';
 import PipelineExportModal from 'components/PipelineExportModal';
 import ConfirmationModal from 'components/ConfirmationModal';
-import downloadPipeline from 'services/download-pipeline';
+import downloadFile from 'services/download-file';
 
 const PREFIX = 'features.PipelineList.DeleteConfirmation';
 
@@ -64,7 +64,7 @@ class DraftActions extends React.PureComponent<IProps, IState> {
     };
 
     // Unless we are running an e2e test, just export the pipeline JSON
-    downloadPipeline(this.pipelineConfig, postExportCb);
+    downloadFile(this.pipelineConfig, postExportCb);
   };
 
   private openExportModal = (): void => {

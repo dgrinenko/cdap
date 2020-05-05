@@ -105,7 +105,8 @@ const dispatchNodeServerDown = () => {
 
 const getRequestInfo = () => {
   let headers = {
-    sessionToken: SessionTokenStore.getState()
+    sessionToken: SessionTokenStore.getState(),
+    'X-Requested-With': 'XmlHttpRequest',
   };
   let requestInfo = {
     credentials: 'include',

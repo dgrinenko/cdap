@@ -182,6 +182,7 @@ angular
               user: $rootScope.currentUser || null,
               headers: {
                 'Content-Type': 'application/json',
+                'X-Requested-With': 'XmlHttpRequest',
               }
             };
 

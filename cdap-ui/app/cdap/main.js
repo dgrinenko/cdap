@@ -97,6 +97,13 @@ const client = new ApolloClient({
           'X-Requested-With': 'XmlHttpRequest',
         },
       });
+    } else {
+      operation.setContext({
+        headers: {
+          'Session-Token': SessionTokenStore.getState(),
+          'X-Requested-With': 'XmlHttpRequest',
+        },
+      });
     }
   },
 });

@@ -17,7 +17,6 @@
 import * as React from 'react';
 import withStyles, { WithStyles, StyleRules } from '@material-ui/core/styles/withStyles';
 import LeftPanel from 'components/Replicator/Create/LeftPanel';
-import EntityTopPanel from 'components/EntityTopPanel';
 import TopPanel from 'components/Replicator/Create/TopPanel';
 import Content from 'components/Replicator/Create/Content';
 import { Redirect } from 'react-router-dom';
@@ -134,7 +133,7 @@ class CreateView extends React.PureComponent<ICreateProps, ICreateContext> {
   public setNameDescription = (name, description) => {
     this.setState({ name, description }, () => {
       this.props.history.push(
-        `/ns/${getCurrentNamespace()}/replicator/drafts/${this.state.draftId}`
+        `/ns/${getCurrentNamespace()}/replication/drafts/${this.state.draftId}`
       );
     });
   };
@@ -475,7 +474,7 @@ class CreateView extends React.PureComponent<ICreateProps, ICreateContext> {
   };
 
   private redirectToListView = () => {
-    return <Redirect to={`/ns/${getCurrentNamespace()}/replicator`} />;
+    return <Redirect to={`/ns/${getCurrentNamespace()}/replication`} />;
   };
 
   public render() {

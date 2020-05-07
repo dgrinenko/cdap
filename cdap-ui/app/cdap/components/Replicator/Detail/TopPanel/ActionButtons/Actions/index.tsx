@@ -65,7 +65,7 @@ const ActionsView: React.FC<IDetailContext & WithStyles<typeof styles>> = ({ cla
   const [redirect, setRedirect] = React.useState(false);
 
   if (redirect) {
-    return <Redirect to={`/ns/${getCurrentNamespace()}/replicator`} />;
+    return <Redirect to={`/ns/${getCurrentNamespace()}/replication`} />;
   }
 
   const actions: IAction[] = [

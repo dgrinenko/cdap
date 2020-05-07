@@ -127,7 +127,7 @@ const SummaryView: React.FC<ICreateContext & WithStyles<typeof styles>> = ({
   }
 
   if (redirect) {
-    return <Redirect to={`/ns/${getCurrentNamespace()}/replicator/detail/${name}`} />;
+    return <Redirect to={`/ns/${getCurrentNamespace()}/replication/detail/${name}`} />;
   }
 
   return (

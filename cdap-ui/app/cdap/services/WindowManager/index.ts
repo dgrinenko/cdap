@@ -55,7 +55,7 @@ class WindowManager {
   private pingNodejs = () => {
     fetch('/ping', {
       headers: {
-        'X-Requested-With': 'XmlHttpRequest',
+        'X-Requested-With': 'XMLHttpRequest',
         sessionToken: SessionTokenStore.getState(),
       },
     });

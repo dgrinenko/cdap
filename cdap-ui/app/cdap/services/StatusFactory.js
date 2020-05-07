@@ -105,7 +105,7 @@ const dispatchNodeServerDown = () => {
 
 const getRequestInfo = () => {
   let headers = {
-    'X-Requested-With': 'XmlHttpRequest',
+    'X-Requested-With': 'XMLHttpRequest',
   };
   let requestInfo = {
     credentials: 'include',

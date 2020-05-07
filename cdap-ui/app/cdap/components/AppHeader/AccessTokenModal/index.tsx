@@ -86,7 +86,7 @@ export default class AccessTokenModal extends Component<
       headers: {
         Accept: 'application/json',
         'Content-Type': 'application/json',
-        'X-Requested-With': 'XmlHttpRequest',
+        'X-Requested-With': 'XMLHttpRequest',
         sessionToken: SessionStore.getState(),
       },
       body: JSON.stringify({

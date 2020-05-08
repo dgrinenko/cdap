@@ -17,14 +17,12 @@
 import ee from 'event-emitter';
 import 'whatwg-fetch';
 import ifvisible from 'ifvisible.js';
-import SessionTokenStore from 'services/SessionTokenStore';
 const WINDOW_ON_BLUR = 'WINDOW_BLUR_EVENT';
 const WINDOW_ON_FOCUS = 'WINDOW_FOCUS_EVENT';
 
 class WindowManager {
   public eventemitter = ee(ee);
-  private idleTimePingTimeout = null;
-  private static DEFAULT_PING_INTERVAL = 300000;
+  private worker = new Worker('/cdap_assets/web-workers/Heartbeat-web-worker.js');
   constructor() {
     if (window.parent.Cypress) {
       return;
@@ -45,33 +43,45 @@ class WindowManager {
       this.onFocusHandler();
     });
     ifvisible.setIdleDuration(30);
+    this.worker.onmessage = (e) => {
+      this.reloadImage();
+    };
   }
-
   /**
-   * We need to ping the nodejs server for every ${DEFAULT_PING_INTERVAL}
-   * to check for status. This is done when the page goes inactive.
-   * This is needed for proxies that needs to authenticate requests every X minutes
+   * We need this ping going from the browser to nodejs server.
+   * This serves in enviornments where we need the browser make a request
+   * before the auth session expires.
+   *
+   * This is useful when the user is no longer active in the tab
+   * for sometime and switches back. Without this the UI will be unable
+   * to reach backend and will show UI node server is down, but on refresh will
+   * function just fine.
    */
-  private pingNodejs = () => {
-    fetch('/ping', {
-      headers: {
-        'X-Requested-With': 'XMLHttpRequest',
-        sessionToken: SessionTokenStore.getState(),
-      },
-    });
+  public reloadImage = () => {
+    const alreadyExistingImage = document.getElementById('heartbeat-img-id');
+    if (alreadyExistingImage) {
+      alreadyExistingImage.parentNode.removeChild(alreadyExistingImage);
+    }
+    const newImage = document.createElement('img');
+    newImage.src = `/cdap_assets/img/heartbeat.png?time=${Date.now()}`;
+    newImage.id = 'heartbeat-img-id';
+    newImage.style.width = '1px';
+    newImage.style.position = 'absolute';
+    newImage.style.left = '-3000px';
+    document.body.appendChild(newImage);
   };
 
   public onBlurEventHandler = () => {
-    this.pingNodejs();
-    this.idleTimePingTimeout = setInterval(
-      this.pingNodejs.bind(this),
-      WindowManager.DEFAULT_PING_INTERVAL
-    );
+    this.worker.postMessage({
+      timer: 'start',
+    });
     this.eventemitter.emit(WINDOW_ON_BLUR);
   };
 
   public onFocusHandler = () => {
-    clearInterval(this.idleTimePingTimeout);
+    this.worker.postMessage({
+      timer: 'stop',
+    });
     this.eventemitter.emit(WINDOW_ON_FOCUS);
   };
 
